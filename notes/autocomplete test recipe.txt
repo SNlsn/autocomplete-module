@@ -1,0 +1,127 @@
+Autocomplete Module Recipe
+
+Reference:
+Autocomplete Railscast:
+  http://railscasts.com/episodes/102-auto-complete-association-revised
+using jqueryui in newer rails:
+  http://stackoverflow.com/questions/17830313/couldnt-find-file-jquery-ui
+jquery autocomplete rails 3 gem
+  https://github.com/crowdint/rails3-jquery-autocomplete
+
+Create new App.
+Note, the following somewhat unusual syntax is from Rails_Apps - no need to make a .rvmrc file with this method
+
+	mkdir Autocomplete-Module-07-2013
+	cd Autocomplete-Module-07-2013
+	rvm use ruby-2.0.0@Autocomplete-Module-07-2013 --ruby-version --create
+	gem install rails --version=3.2.13
+	rails new .
+	mate .
+
+  Add this to the .gitignore file Rails generates:
+
+  	# Ignore other unneeded files
+  	doc/
+  	*.swp
+  	*~
+  	.project
+  	.DS_Store
+  	*.sublime-project
+  	*.sublime-workspace
+
+  * rename README.rdoc to README.md and add some sane content.
+  * delete public/index.html
+
+  **Add** the following to the Gemfile:
+
+  	gem 'jquery-ui-rails'
+  	gem 'simple_form'
+  	gem 'rails3-jquery-autocomplete'
+
+  	group :development do
+  	  gem 'better_errors'
+  	end
+
+  * run bundle command: bundle install
+  * run generator:
+
+  	rails g simple_form:install
+
+  make initial git commit:
+
+  	git init
+  	git add .
+  	git commit -m "initial commit"
+
+rails g scaffold Contact first_name last_name company_id:integer
+
+rails g scaffold Company name
+
+rake db:migrate
+
+
+Contact Model:
+  belongs_to :company
+  (be sure to add :company_name as attr_accessible)
+    def company_name
+      company.try(:name)
+    end
+
+    def company_name(name)
+      self.company = Company.find_or_create_by_name(name) if name.present?
+    end
+
+Company Model:
+  has_many :contacts
+  attr_accessible :name
+  before_save :replace_ampersands
+  def replace_ampersands
+    name.gsub!("&", "and")
+  end
+
+contact form:
+  <%= f.input :company_name, :url => autocomplete_company_name_contacts_path, :as => :autocomplete %>
+
+
+Modify routes file:
+resources :contacts do
+  get :autocomplete_company_name, :on => :collection
+end
+
+Contact Controller:
+put this at the VERY TOP (first line after Class declaration):
+autocomplete :company, :name
+
+
+modify Contact Show and Index to use @contact.company.name instead of company_id
+
+Application.js:
+  //= require jquery.ui.autocomplete
+  //= require autocomplete-rails
+
+application.css
+  *= require jquery.ui.autocomplete
+
+contacts.css.scss
+  ul.ui-autocomplete {
+    position: absolute;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: solid 1px #999;
+    cursor: default;
+    li {
+      background-color: #FFF;
+      border-top: solid 1px #DDD;
+      margin: 0;
+      padding: 0;
+      a {
+        color: #000;
+        display: block;
+        padding: 3px;
+      }
+      a.ui-state-hover, a.ui-state-active {
+        background-color: #FFFCB2;
+      }
+    }
+  }
