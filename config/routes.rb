@@ -1,4 +1,12 @@
 AutocompleteModule072013::Application.routes.draw do
+  resources :companies
+
+  resources :contacts do
+    get :autocomplete_company_name, :on => :collection
+  end
+
+  root :to => 'contacts#index'
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 

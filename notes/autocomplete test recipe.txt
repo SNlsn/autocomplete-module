@@ -67,7 +67,7 @@ Contact Model:
       company.try(:name)
     end
 
-    def company_name(name)
+    def company_name=(name)
       self.company = Company.find_or_create_by_name(name) if name.present?
     end
 
